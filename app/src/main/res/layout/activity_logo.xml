@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.souza.caio.click.telas.LogoActivity"
+    android:orientation="vertical"
+    android:background="@color/branco">
+
+
+    <com.yqritc.scalablevideoview.ScalableVideoView
+        android:id="@+id/video_logo_splash_screen"
+        android:layout_width="0dp"
+        android:layout_height="204dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:scalableType="centerInside" />
+
+    <ImageView
+        android:id="@+id/titulo_logo_splash_screen"
+        android:layout_width="256dp"
+        android:layout_height="54dp"
+        android:src="@drawable/click_titulo"
+        app:layout_constraintBottom_toTopOf="@+id/logo_dev"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/video_logo_splash_screen"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <ImageView
+        android:id="@+id/logo_dev"
+        android:layout_width="108dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="168dp"
+        android:layout_marginLeft="168dp"
+        android:layout_marginBottom="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.846"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/logo_dev_inews"
+        android:contentDescription="@string/capa" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

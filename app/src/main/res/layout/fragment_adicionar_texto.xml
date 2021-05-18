@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.souza.caio.click.fragmentos.AdicionarTexto"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+   <EditText
+       android:id="@+id/edTxt_Add_texto"
+       android:scrollbars="vertical"
+       android:hint="Insira seu texto..."
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:maxHeight="200dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_fonte_texto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_cores_texto"
+        android:layout_width="match_parent"
+        android:layout_height="80dp">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <Button
+        android:id="@+id/btn_finalizar_Add_texto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Finalizar"/>
+</LinearLayout>
