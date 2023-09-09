@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.souza.caio.click.adaptadores.AdaptadorEmoji;
+import com.souza.caio.click.adaptadores.AdapterEmoji;
 import com.souza.caio.click.sensores.EmojiFragmentListener;
 import com.souza.caio.click.R;
 
@@ -21,7 +21,7 @@ import ja.burhanrashid52.photoeditor.PhotoEditor;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class EmojiFragment extends BottomSheetDialogFragment implements AdaptadorEmoji.EmojiAdapterListener
+public class EmojiFragment extends BottomSheetDialogFragment implements AdapterEmoji.EmojiAdapterListener
 {
 
     private RecyclerView recyclerView;
@@ -58,13 +58,13 @@ public class EmojiFragment extends BottomSheetDialogFragment implements Adaptado
 
     private void configurarAdapter()
     {
-        AdaptadorEmoji adapter = new AdaptadorEmoji(getContext(), PhotoEditor.getEmojis(getContext()), this);
+        AdapterEmoji adapter = new AdapterEmoji(getContext(), PhotoEditor.getEmojis(getContext()), this);
         recyclerView.setAdapter(adapter);
     }
 
 
     @Override
-    public void aoSelecionarEmoji(String emoji)
+    public void onSelectEmoji(String emoji)
     {
         listener.aoSelecionarEmoji(emoji);
     }
@@ -79,6 +79,10 @@ public class EmojiFragment extends BottomSheetDialogFragment implements Adaptado
         if (instance == null)
             instance = new EmojiFragment();
         return instance;
+    }
+
+    public View getView(){
+        return this.view;
     }
 
 }

@@ -13,17 +13,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.souza.caio.click.adaptadores.AdaptadorCores;
+import com.souza.caio.click.adaptadores.AdapterColors;
 import com.souza.caio.click.sensores.BrushFragmentListener;
 import com.souza.caio.click.R;
 
-public class BrushFragment extends BottomSheetDialogFragment implements AdaptadorCores.AdaptadorCoresListener
+public class BrushFragment extends BottomSheetDialogFragment implements AdapterColors.AdaptadorCoresListener
 {
     private View view;
     private SeekBar espessura, opacidade;
     private RecyclerView recyclerView_cores;
-    private ToggleButton btn_estado_pincel;
-    private AdaptadorCores adaptadorCores;
+    private ToggleButton btnEstadoPincel;
+    private AdapterColors adaptadorCores;
     private BrushFragmentListener listener;
 
     static BrushFragment instance;
@@ -71,13 +71,13 @@ public class BrushFragment extends BottomSheetDialogFragment implements Adaptado
         espessura = view.findViewById(R.id.seekbar_espessura_pincel);
         opacidade = view.findViewById(R.id.seekbar_opacidade_pincel);
         recyclerView_cores = view.findViewById(R.id.recycler_cores);
-        btn_estado_pincel = view.findViewById(R.id.btn_estado_pincel);
+        btnEstadoPincel = view.findViewById(R.id.btn_estado_pincel);
         recyclerView_cores.setHasFixedSize(true);
     }
 
     private void configurarBotaoEstadoPincel()
     {
-        btn_estado_pincel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+        btnEstadoPincel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
         {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
@@ -138,13 +138,18 @@ public class BrushFragment extends BottomSheetDialogFragment implements Adaptado
     private void configurarRecyclerView()
     {
         recyclerView_cores.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
-        adaptadorCores = new AdaptadorCores(getContext(), this);
+        adaptadorCores = new AdapterColors(getContext(), this);
         recyclerView_cores.setAdapter(adaptadorCores);
     }
 
+    public void resetarAlteracoes(){
+        espessura.setProgress(0);
+        opacidade.setProgress(0);
+        btnEstadoPincel.setChecked(false);
+    }
 
     @Override
-    public void aoSelecionarCor(int cor)
+    public void onSelectColor(int cor)
     {
         listener.aoMudarCor(cor);
     }

@@ -8,8 +8,6 @@
     android:id="@+id/layout_editar_capa"
     android:orientation="vertical">
 
-
-
     <include layout="@layout/conteudo_main"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

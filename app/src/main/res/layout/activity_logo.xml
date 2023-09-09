@@ -8,42 +8,30 @@
     android:orientation="vertical"
     android:background="@color/branco">
 
-
     <com.yqritc.scalablevideoview.ScalableVideoView
         android:id="@+id/video_logo_splash_screen"
         android:layout_width="0dp"
-        android:layout_height="204dp"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:scalableType="centerInside" />
-
-    <ImageView
-        android:id="@+id/titulo_logo_splash_screen"
-        android:layout_width="256dp"
-        android:layout_height="54dp"
-        android:src="@drawable/click_titulo"
-        app:layout_constraintBottom_toTopOf="@+id/logo_dev"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/video_logo_splash_screen"
-        app:layout_constraintVertical_bias="0.0" />
+        app:scalableType="centerCrop" />
 
     <ImageView
         android:id="@+id/logo_dev"
-        android:layout_width="108dp"
-        android:layout_height="54dp"
-        android:layout_marginStart="168dp"
-        android:layout_marginLeft="168dp"
-        android:layout_marginBottom="32dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.846"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/logo_dev_inews"
-        android:contentDescription="@string/capa" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/logo_dev_click"
+        android:contentDescription="@string/capa"
+        app:layout_constraintVertical_bias="0.95"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintWidth_percent="0.5"
+        app:layout_constraintDimensionRatio="1:1"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

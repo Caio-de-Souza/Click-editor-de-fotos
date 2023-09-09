@@ -5,28 +5,35 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/abrir_camera"
-        android:orderInCategory="100"
+        android:id="@+id/btnResetar"
+        android:orderInCategory="1"
+        app:showAsAction="always"
+        android:enabled="true"
+        android:title="Resetar"
+        android:icon="@drawable/ic_reload_inverted"/>
+
+    <item
+        android:id="@+id/btnOpenCamera"
+        android:orderInCategory="2"
         app:showAsAction="always"
         android:enabled="true"
         android:title="Abrir Imagem"
         android:icon="@drawable/ic_camera"/>
 
     <item
-        android:id="@+id/selecionar_imagem"
-        android:orderInCategory="100"
+        android:id="@+id/btnSelectImage"
+        android:orderInCategory="3"
         app:showAsAction="always"
         android:enabled="true"
         android:title="Selecionaer Imagem"
         android:icon="@drawable/ic_open"/>
 
     <item
-        android:id="@+id/salvar_imagem"
-        android:orderInCategory="101"
+        android:id="@+id/btnSaveImage"
+        android:orderInCategory="4"
         app:showAsAction="always"
         android:enabled="true"
         android:title="Salvar"
         android:icon="@drawable/ic_save"/>
-
 
 </menu>

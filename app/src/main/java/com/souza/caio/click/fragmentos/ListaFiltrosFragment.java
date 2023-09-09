@@ -14,9 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.souza.caio.click.adaptadores.AdaptadorThumbnail;
+import com.souza.caio.click.adaptadores.AdapterThumbnail;
 import com.souza.caio.click.adaptadores.BitmapUtils;
-import com.souza.caio.click.adaptadores.DecoracaoEspaco;
+import com.souza.caio.click.adaptadores.DecorateSpace;
 import com.souza.caio.click.sensores.ListaFiltrosFragmentListener;
 import com.souza.caio.click.telas.MainActivity;
 import com.souza.caio.click.R;
@@ -33,7 +33,7 @@ public class ListaFiltrosFragment extends BottomSheetDialogFragment implements L
 
     private View view;
     private RecyclerView recyclerView;
-    private AdaptadorThumbnail adaptadorThumb;
+    private AdapterThumbnail adaptadorThumb;
     private List<ThumbnailItem> thumbnailItems;
 
     private ListaFiltrosFragmentListener listener;
@@ -70,14 +70,14 @@ public class ListaFiltrosFragment extends BottomSheetDialogFragment implements L
     public void iniciarComponentes()
     {
         thumbnailItems = new ArrayList<>();
-        adaptadorThumb = new AdaptadorThumbnail(thumbnailItems, this, getActivity());
+        adaptadorThumb = new AdapterThumbnail(thumbnailItems, this, getActivity());
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         int espaco = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-        recyclerView.addItemDecoration(new DecoracaoEspaco(espaco));
+        recyclerView.addItemDecoration(new DecorateSpace(espaco));
 
         recyclerView.setAdapter(adaptadorThumb);
 

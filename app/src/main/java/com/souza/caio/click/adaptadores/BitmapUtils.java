@@ -27,18 +27,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class BitmapUtils
-{
+public class BitmapUtils {
 
-    public static Bitmap getBitmapFromAssets(Context context, String nome, int largura, int altura)
-    {
+    public static Bitmap getBitmapFromAssets(Context context, String nome, int largura, int altura) {
         AssetManager assetManager = context.getAssets();
 
         InputStream inputStream;
         Bitmap bitmap = null;
 
-        try
-        {
+        try {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             inputStream = assetManager.open(nome);
@@ -46,18 +43,15 @@ public class BitmapUtils
             options.inJustDecodeBounds = false;
 
             return BitmapFactory.decodeStream(inputStream, null, options);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         return null;
     }
 
-    public static Bitmap getBitmapFromGallery(Context context, Uri uri, int largura, int altura)
-    {
-        try{
+    public static Bitmap getBitmapFromGallery(Context context, Uri uri, int largura, int altura) {
+        try {
             String[] colunaDiretorio = {MediaStore.Images.Media.DATA};
             Cursor cursor = context.getContentResolver().query(uri, colunaDiretorio, null, null, null);
             if (cursor.moveToFirst()) {
@@ -78,26 +72,24 @@ public class BitmapUtils
                         return null;
                     }
                 } else {*/
-                    // Repeat the code you already are using
-                    String diretorioImagem = cursor.getString(cursor.getColumnIndex(colunaDiretorio[0]));
-                    cursor.close();
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                    return BitmapFactory.decodeFile(diretorioImagem, options);
-               // }
+                // Repeat the code you already are using
+                String diretorioImagem = cursor.getString(cursor.getColumnIndex(colunaDiretorio[0]));
+                cursor.close();
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                return BitmapFactory.decodeFile(diretorioImagem, options);
+                // }
             }
-        }catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
 
-    public static Bitmap applyOverlay(Context context, Bitmap sourceImage, int overlayDrawableResourceId)
-    {
+    public static Bitmap applyOverlay(Context context, Bitmap sourceImage, int overlayDrawableResourceId) {
         Bitmap bitmap = null;
-        try
-        {
+        try {
             int width = sourceImage.getWidth();
             int height = sourceImage.getHeight();
             Resources r = context.getResources();
@@ -109,16 +101,13 @@ public class BitmapUtils
             layers[1] = new BitmapDrawable(r, BitmapUtils.decodeSampledBitmapFromResource(r, overlayDrawableResourceId, width, height));
             LayerDrawable layerDrawable = new LayerDrawable(layers);
             bitmap = BitmapUtils.drawableToBitmap(layerDrawable);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
         }
         return bitmap;
     }
 
     public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-                                                         int reqWidth, int reqHeight)
-    {
+                                                         int reqWidth, int reqHeight) {
 
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -134,15 +123,13 @@ public class BitmapUtils
     }
 
     public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight)
-    {
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;
         int inSampleSize = 1;
 
-        if (height > reqHeight || width > reqWidth)
-        {
+        if (height > reqHeight || width > reqWidth) {
 
             final int halfHeight = height / 2;
             final int halfWidth = width / 2;
@@ -150,8 +137,7 @@ public class BitmapUtils
             // Calculate the largest inSampleSize value that is a power of 2 and keeps both
             // height and width larger than the requested height and width.
             while ((halfHeight / inSampleSize) >= reqHeight
-                    && (halfWidth / inSampleSize) >= reqWidth)
-            {
+                    && (halfWidth / inSampleSize) >= reqWidth) {
                 inSampleSize *= 2;
             }
         }
@@ -159,25 +145,19 @@ public class BitmapUtils
         return inSampleSize;
     }
 
-    public static Bitmap drawableToBitmap(Drawable drawable)
-    {
+    public static Bitmap drawableToBitmap(Drawable drawable) {
         Bitmap bitmap = null;
 
-        if (drawable instanceof BitmapDrawable)
-        {
+        if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if (bitmapDrawable.getBitmap() != null)
-            {
+            if (bitmapDrawable.getBitmap() != null) {
                 return bitmapDrawable.getBitmap();
             }
         }
 
-        if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0)
-        {
+        if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
             bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
-        }
-        else
-        {
+        } else {
             bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         }
 
@@ -187,8 +167,7 @@ public class BitmapUtils
         return bitmap;
     }
 
-    public static String inserirImagem(ContentResolver resolver, Bitmap fonte, String titulo, String descricao)
-    {
+    public static String inserirImagem(ContentResolver resolver, Bitmap fonte, String titulo, String descricao) {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, titulo);
         values.put(MediaStore.Images.Media.DISPLAY_NAME, titulo);
@@ -200,21 +179,15 @@ public class BitmapUtils
         Uri uri = null;
         String stringUri = null;
 
-        try
-        {
+        try {
             uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
-            if (fonte != null)
-            {
+            if (fonte != null) {
                 OutputStream outputStream = resolver.openOutputStream(uri);
 
-                try
-                {
+                try {
                     fonte.compress(Bitmap.CompressFormat.JPEG, 50, outputStream);
-                }
-                finally
-
-                {
+                } finally {
                     outputStream.close();
                 }
 
@@ -222,17 +195,12 @@ public class BitmapUtils
                 Bitmap mini_thumb = MediaStore.Images.Thumbnails.getThumbnail(resolver, id, MediaStore.Images.Thumbnails.MINI_KIND, null);
 
                 armazenarThumb(resolver, mini_thumb, id, 50f, 50f, MediaStore.Images.Thumbnails.MICRO_KIND);
-            }
-            else
-            {
+            } else {
                 resolver.delete(uri, null, null);
                 uri = null;
             }
-        }
-        catch (IOException e)
-        {
-            if (uri != null)
-            {
+        } catch (IOException e) {
+            if (uri != null) {
                 resolver.delete(uri, null, null);
                 uri = null;
             }
@@ -245,8 +213,7 @@ public class BitmapUtils
         return stringUri;
     }
 
-    public static String salvarCover(String diretorio, Bitmap imagem, String nome, String descricao)
-    {
+    public static String salvarCover(String diretorio, Bitmap imagem, String nome, String descricao) {
         Uri uri = null;
         String stringUri = null;
 
@@ -254,27 +221,18 @@ public class BitmapUtils
 
         File file = new File(Environment.getExternalStorageDirectory() + "/Documentos/");
 
-        if (!file.exists())
-        {
+        if (!file.exists()) {
             file.mkdir();
         }
-        try
-        {
+        try {
             fileOutputStream = new FileOutputStream(Environment.getExternalStorageDirectory() + "/Documentos/" + nome);
             imagem.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
-        }
-        catch (FileNotFoundException e)
-        {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-        }
-        finally
-        {
-            try
-            {
+        } finally {
+            try {
                 fileOutputStream.close();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -284,8 +242,7 @@ public class BitmapUtils
     }
 
 
-    private static final Bitmap armazenarThumb(ContentResolver resolver, Bitmap mini_thumb, long id, float largura, float altura, int kind)
-    {
+    private static final Bitmap armazenarThumb(ContentResolver resolver, Bitmap mini_thumb, long id, float largura, float altura, int kind) {
         Matrix matrix = new Matrix();
 
         float escalaX = largura / mini_thumb.getWidth();
@@ -304,22 +261,17 @@ public class BitmapUtils
 
         Uri uri = resolver.insert(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, contentValues);
 
-        try
-        {
+        try {
             OutputStream outputStream = resolver.openOutputStream(uri);
             thumb.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.close();
 
             return thumb;
-        }
-        catch (FileNotFoundException e)
-        {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
 
             return null;
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
 
             return null;
