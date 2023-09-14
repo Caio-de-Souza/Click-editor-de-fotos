@@ -77,14 +77,7 @@ public class BrushFragment extends BottomSheetDialogFragment implements AdapterC
 
     private void configurarBotaoEstadoPincel()
     {
-        btnEstadoPincel.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
-            {
-                listener.aoMudarEstadoPincel(isChecked);
-            }
-        });
+        btnEstadoPincel.setOnCheckedChangeListener((buttonView, isChecked) -> listener.aoMudarEstadoPincel(isChecked));
     }
 
     private void configurarOpacidade()

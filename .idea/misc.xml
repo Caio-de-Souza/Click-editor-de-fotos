@@ -3,10 +3,17 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_crop.xml" value="0.121" />
+        <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_image_sync_outline.xml" value="0.237" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_logo_background.xml" value="0.11" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_reload.xml" value="0.11" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_reload_inverted.xml" value="0.11" />
+        <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_remove_background.xml" value="0.237" />
+        <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_resize.xml" value="0.121" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_save.xml" value="0.11" />
+        <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_text_image.xml" value="0.237" />
+        <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_text_recognition.xml" value="0.237" />
+        <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/drawable/ic_thought.xml" value="0.237" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/layout/activity_logo.xml" value="0.22826086956521738" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/layout/activity_main.xml" value="0.10989583333333333" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/layout/color_item.xml" value="0.1171875" />
@@ -16,6 +23,7 @@
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/layout/fragment_adicionar_texto.xml" value="0.22826086956521738" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/layout/fragment_brush.xml" value="0.1" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/layout/fragment_editar_imagem.xml" value="0.10989583333333333" />
+        <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/layout/layout_prompt_ai.xml" value="0.1171875" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/layout/thumbnail_item.xml" value="0.1171875" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/menu/menu_main.xml" value="0.2" />
         <entry key="..\:/Users/caios/Documents/Programacao/Click-editor-de-fotos/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2265" />

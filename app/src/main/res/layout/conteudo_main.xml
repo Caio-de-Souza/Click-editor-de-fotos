@@ -255,9 +255,198 @@
                </LinearLayout>
            </androidx.cardview.widget.CardView>
 
+           <androidx.cardview.widget.CardView
+               android:id="@+id/btn_redimensionar"
+               android:layout_width="80dp"
+               android:layout_height="80dp"
+               android:layout_marginLeft="8dp"
+               android:padding="16dp"
+               app:cardBackgroundColor="@color/card_bckg_ia">
 
+               <LinearLayout
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:layout_gravity="center_vertical|center_horizontal">
+
+                   <ImageView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:src="@drawable/ic_resize"
+                       android:layout_gravity="center"/>
+
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:text="Redimensionar"
+                       android:textStyle="bold"
+                       android:textColor="@color/branco"
+                       android:textSize="15sp"
+                       android:textAlignment="center"/>
+               </LinearLayout>
+           </androidx.cardview.widget.CardView>
+
+           <androidx.cardview.widget.CardView
+               android:id="@+id/btn_reimaginar"
+               android:layout_width="80dp"
+               android:layout_height="80dp"
+               android:layout_marginLeft="8dp"
+               android:padding="16dp"
+               app:cardBackgroundColor="@color/card_bckg_ia">
+
+               <LinearLayout
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:layout_gravity="center_vertical|center_horizontal">
+
+                   <ImageView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:src="@drawable/ic_thought"
+                       android:layout_gravity="center"/>
+
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:text="Reimaginar"
+                       android:textStyle="bold"
+                       android:textColor="@color/branco"
+                       android:textSize="15sp"
+                       android:textAlignment="center"/>
+
+               </LinearLayout>
+           </androidx.cardview.widget.CardView>
+
+           <androidx.cardview.widget.CardView
+               android:id="@+id/btn_remove_background"
+               android:layout_width="80dp"
+               android:layout_height="80dp"
+               android:layout_marginLeft="8dp"
+               android:padding="16dp"
+               app:cardBackgroundColor="@color/card_bckg_ia">
+
+               <LinearLayout
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:layout_gravity="center_vertical|center_horizontal">
+
+                   <ImageView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:src="@drawable/ic_remove_background"
+                       android:layout_gravity="center"/>
+
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:text="Remover Fundo"
+                       android:textStyle="bold"
+                       android:textColor="@color/branco"
+                       android:textSize="15sp"
+                       android:textAlignment="center"/>
+
+               </LinearLayout>
+           </androidx.cardview.widget.CardView>
+
+
+           <androidx.cardview.widget.CardView
+               android:id="@+id/btn_remove_text"
+               android:layout_width="80dp"
+               android:layout_height="80dp"
+               android:layout_marginLeft="8dp"
+               android:padding="16dp"
+               app:cardBackgroundColor="@color/card_bckg_ia">
+
+               <LinearLayout
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:layout_gravity="center_vertical|center_horizontal">
+
+                   <ImageView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:src="@drawable/ic_text_recognition"
+                       android:layout_gravity="center"/>
+
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:text="Remover Texto"
+                       android:textStyle="bold"
+                       android:textColor="@color/branco"
+                       android:textSize="15sp"
+                       android:textAlignment="center"/>
+
+               </LinearLayout>
+           </androidx.cardview.widget.CardView>
+
+           <androidx.cardview.widget.CardView
+               android:id="@+id/btn_replace_background"
+               android:layout_width="80dp"
+               android:layout_height="80dp"
+               android:layout_marginLeft="8dp"
+               android:padding="16dp"
+               app:cardBackgroundColor="@color/card_bckg_ia">
+
+               <LinearLayout
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:layout_gravity="center_vertical|center_horizontal">
+
+                   <ImageView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:src="@drawable/ic_image_sync_outline"
+                       android:layout_gravity="center"/>
+
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:text="Substituir fundo"
+                       android:textStyle="bold"
+                       android:textColor="@color/branco"
+                       android:textSize="15sp"
+                       android:textAlignment="center"/>
+
+               </LinearLayout>
+           </androidx.cardview.widget.CardView>
+
+           <androidx.cardview.widget.CardView
+               android:id="@+id/btn_text_to_image"
+               android:layout_width="80dp"
+               android:layout_height="80dp"
+               android:layout_marginLeft="8dp"
+               android:padding="16dp"
+               app:cardBackgroundColor="@color/card_bckg_ia">
+
+               <LinearLayout
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:layout_gravity="center_vertical|center_horizontal">
+
+                   <ImageView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:src="@drawable/ic_text_image"
+                       android:layout_gravity="center"/>
+
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:text="Texto para Imagem"
+                       android:textStyle="bold"
+                       android:textColor="@color/branco"
+                       android:textSize="15sp"
+                       android:textAlignment="center"/>
+
+               </LinearLayout>
+           </androidx.cardview.widget.CardView>
        </LinearLayout>
-
 
    </HorizontalScrollView>
 

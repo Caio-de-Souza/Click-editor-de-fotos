@@ -1,28 +1,30 @@
 package com.souza.caio.click.telas;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -31,6 +33,7 @@ import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
+import com.souza.caio.click.exceptions.ai.AIException;
 import com.souza.caio.click.sensores.BrushFragmentListener;
 import com.souza.caio.click.sensores.EditarImagemFragmentListener;
 import com.souza.caio.click.sensores.EmojiFragmentListener;
@@ -49,19 +52,36 @@ import com.zomato.photofilters.imageprocessors.subfilters.BrightnessSubFilter;
 import com.zomato.photofilters.imageprocessors.subfilters.ContrastSubFilter;
 import com.zomato.photofilters.imageprocessors.subfilters.SaturationSubfilter;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
 import ja.burhanrashid52.photoeditor.OnSaveBitmap;
 import ja.burhanrashid52.photoeditor.PhotoEditor;
 import ja.burhanrashid52.photoeditor.PhotoEditorView;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static com.souza.caio.click.ai.connection.ClickAiClient.getInstance;
+import static com.souza.caio.click.ai.utils.ClickAIUtils.validateImageReimaginate;
+import static com.souza.caio.click.ai.utils.ClickAIUtils.validateImageRemoveBackground;
+import static com.souza.caio.click.ai.utils.ClickAIUtils.validateImageRemoveText;
+import static com.souza.caio.click.ai.utils.ClickAIUtils.validateImageReplaceBackground;
+import static com.souza.caio.click.utils.Utils.readApiKey;
+import static com.souza.caio.click.utils.Utils.showMessage;
 
 public class MainActivity extends AppCompatActivity implements ListaFiltrosFragmentListener, EditarImagemFragmentListener, BrushFragmentListener, AdicionarTextoFragmentListener, EmojiFragmentListener {
     public static final String TITULO_APPBAR = "Click - Editor de Fotos";
     public static final String ERRO_SALVAMENTO = "ERRO: INCAPAZ DE SALVAR A IMAGEM! :X";
     public static final String SALVO_COM_SUCESSO = "Imagem salva na galeria";
-    public static final String PERMISSÃO_NEGADA = "Permissão negada!";
+    public static final String PERMISSAO_NEGADA = "Permissão negada!";
     private static final String nomeIcone = "default.jpg";
     private static final int PERMISSAO_SELECIONAR_IMAGEM = 1;
     private static final int PERMISSAO_INSERIR_IMAGEM = 2;
@@ -70,7 +90,10 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
     private PhotoEditorView preview;
     private PhotoEditor editor;
 
-    private CardView efeitos, editar, rabiscar, addImage, addText, addEmoji, cortar;
+    private CardView efeitos, editar, rabiscar,
+            addImage, addText, addEmoji, cortar,
+            redimensionar, reimaginar, removerFundo,
+            removerTexto, substituirFundo, textoParaImagem;
 
     private CoordinatorLayout coordinatorLayout;
 
@@ -87,6 +110,9 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
     private EmojiFragment emojiFragment;
     private AdicionarTextoFragment adicionarTextoFragment;
     private BrushFragment brushFragment;
+    private ProgressDialog progressDialog;
+
+    private String API_KEY;
 
     public static final String BIBLIOTECA_NATIVA = "NativeImageProcessor";
 
@@ -98,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        API_KEY = readApiKey(getApplicationContext());
 
         nomearAppBar();
         iniciarComponentes();
@@ -114,6 +142,118 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
         configurarCliqueBotaoAddTexto();
         configurarCliqueBotaoAddEmoji();
         configurarCliqueBotaoCortar();
+        configurarCliqueBotaoRedimensionar();
+        configurarCliqueBotaoReimaginar();
+        configurarCliqueBotaoRemoverFundo();
+        configurarCliqueBotaoRemoverTexto();
+        configurarCliqueBotaoSubstituirFundo();
+        configurarCliqueTextoParaImagem();
+    }
+
+    private void configurarCliqueTextoParaImagem() {
+        textoParaImagem.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.layout_prompt_ai, null);
+            final EditText editText = dialogView.findViewById(R.id.editTextPromptAI);
+
+            builder.setView(dialogView)
+                    .setTitle("Insira a descrição da imagem a ser gerada")
+                    .setPositiveButton("Gerar", (dialog, which) -> {
+                        String promptDigitado = editText.getText().toString();
+                        if(promptDigitado.isEmpty()){
+                            showMessage(MainActivity.this, "O texto é obrigatório");
+                            return;
+                        }
+
+                        try{
+                            progressDialog.setMessage("Gerando imagem a partir de texto com IA...");
+                            progressDialog.show();
+                            textToImage(promptDigitado);
+                        }catch(AIException e){
+                            e.printStackTrace();
+                            showMessage(MainActivity.this, e.getMessage());
+                            progressDialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        });
+    }
+
+    private void configurarCliqueBotaoSubstituirFundo() {
+        substituirFundo.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.layout_prompt_ai, null);
+            final EditText editText = dialogView.findViewById(R.id.editTextPromptAI);
+
+            builder.setView(dialogView)
+                    .setTitle("Insira a descrição do novo fundo")
+                    .setPositiveButton("Processar", (dialog, which) -> {
+                        String promptDigitado = editText.getText().toString();
+
+                        try{
+                            progressDialog.setMessage("substituindo fundo de imagem com IA...");
+                            progressDialog.show();
+                            replaceBackground(promptDigitado);
+                        }catch(AIException e){
+                            e.printStackTrace();
+                            showMessage(MainActivity.this, e.getMessage());
+                            progressDialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        });
+    }
+
+    private void configurarCliqueBotaoRemoverTexto() {
+        removerTexto.setOnClickListener(v -> {
+            try{
+                progressDialog.setMessage("removendo texto de imagem com IA...");
+                progressDialog.show();
+                removeText();
+            }catch(AIException e){
+                e.printStackTrace();
+                showMessage(MainActivity.this, e.getMessage());
+                progressDialog.dismiss();
+            }
+        });
+    }
+
+    private void configurarCliqueBotaoRemoverFundo() {
+        removerFundo.setOnClickListener(v -> {
+            try{
+                progressDialog.setMessage("removendo fundo de imagem com IA...");
+                progressDialog.show();
+                removeBackground();
+            }catch(AIException e){
+                e.printStackTrace();
+                showMessage(MainActivity.this, e.getMessage());
+                progressDialog.dismiss();
+            }
+        });
+    }
+
+    private void configurarCliqueBotaoReimaginar() {
+        reimaginar.setOnClickListener(v -> {
+            try{
+                progressDialog.setMessage("Reimaginando imagem com IA...");
+                progressDialog.show();
+                reimaginarImagem();
+            }catch(AIException e){
+                e.printStackTrace();
+                showMessage(MainActivity.this, e.getMessage());
+                progressDialog.dismiss();
+            }
+        });
+    }
+
+    private void configurarCliqueBotaoRedimensionar() {
+        redimensionar.setOnClickListener(v -> resizeImage());
     }
 
     public void iniciarComponentes() {
@@ -126,30 +266,31 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
         addText = findViewById(R.id.btn_add_text);
         addEmoji = findViewById(R.id.btn_add_emoji);
         cortar = findViewById(R.id.btn_cortar);
+        redimensionar = findViewById(R.id.btn_redimensionar);
+        reimaginar = findViewById(R.id.btn_reimaginar);
+        removerFundo = findViewById(R.id.btn_remove_background);
+        removerTexto = findViewById(R.id.btn_remove_text);
+        substituirFundo = findViewById(R.id.btn_replace_background);
+        textoParaImagem = findViewById(R.id.btn_text_to_image);
 
         coordinatorLayout = findViewById(R.id.layout_editar_capa);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
     }
 
     private void configurarCliqueBotaoCortar() {
-        cortar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (uri_selecionada != null) {
-                    iniciarCorte(uri_selecionada);
-                } else {
-                    exibirMensagem("Apenas imagens da galeria!");
-                }
+        cortar.setOnClickListener(v -> {
+            if (uri_selecionada != null) {
+                iniciarCorte(uri_selecionada);
+            } else {
+                showMessage(MainActivity.this, "Apenas imagens da galeria!");
             }
         });
     }
 
     private void configurarCliqueBotaoAddEmoji() {
-        addEmoji.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                exibirPainelAddEmoji();
-            }
-        });
+        addEmoji.setOnClickListener(v -> exibirPainelAddEmoji());
     }
 
     private void exibirPainelAddEmoji() {
@@ -159,12 +300,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
     }
 
     private void configurarCliqueBotaoAddTexto() {
-        addText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                exibirPainelAddTexto();
-            }
-        });
+        addText.setOnClickListener(v -> exibirPainelAddTexto());
     }
 
     private void exibirPainelAddTexto() {
@@ -174,22 +310,11 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
     }
 
     private void configurarCliqueBotaoAddFoto() {
-        addImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addFoto();
-            }
-        });
+        addImage.setOnClickListener(v -> addFoto());
     }
 
     private void configurarCliqueBotaoRabiscar() {
-        rabiscar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                exibirPainelPincel();
-            }
-        });
+        rabiscar.setOnClickListener(v -> exibirPainelPincel());
     }
 
     private void exibirPainelPincel() {
@@ -201,13 +326,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
     }
 
     private void configurarCliqueBotaoEditar() {
-        editar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                configurarEdicaoSimples();
-            }
-        });
+        editar.setOnClickListener(v -> configurarEdicaoSimples());
     }
 
     private void configurarEdicaoSimples() {
@@ -217,12 +336,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
     }
 
     private void configurarCliqueBotaoEfeitos() {
-        efeitos.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                exibirListaFiltros();
-            }
-        });
+        efeitos.setOnClickListener(v -> exibirListaFiltros());
     }
 
     private void exibirListaFiltros() {
@@ -247,10 +361,8 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
     }
 
     private void iniciarCorte(Uri uri) {
-        String nomeArquivo = new StringBuilder(UUID.randomUUID().toString()).append(".jpg").toString();
-
+        String nomeArquivo = UUID.randomUUID().toString() + ".jpg";
         UCrop uCrop = UCrop.of(uri, Uri.fromFile(new File(getCacheDir(), nomeArquivo)));
-
         uCrop.start(MainActivity.this);
     }
 
@@ -262,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
                         if (report.areAllPermissionsGranted()) {
                             selecionarImagemGaleria(PERMISSAO_INSERIR_IMAGEM);
                         } else {
-                            exibirMensagem("Permissão negada");
+                            showMessage(MainActivity.this, "Permissão negada");
                         }
                     }
 
@@ -281,6 +393,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
 
     private void carregarImagem() {
         imagemOriginal = BitmapUtils.getBitmapFromAssets(this, nomeIcone, 300, 300);
+        assert imagemOriginal != null;
         imagemEditando = imagemOriginal.copy(Bitmap.Config.ARGB_8888, true);
         imagemFinal = imagemOriginal.copy(Bitmap.Config.ARGB_8888, true);
         preview.getSource().setImageBitmap(imagemOriginal);
@@ -354,7 +467,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
             abrirGaleria();
         } else if (item.getItemId() == R.id.btnSaveImage) {
             salvarImagem();
-        } else if(item.getItemId() == R.id.btnResetar){
+        } else if (item.getItemId() == R.id.btnResetar) {
             resetarEdicao();
         } else {
             return super.onOptionsItemSelected(item);
@@ -378,7 +491,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
                             cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri_selecionada);
                             startActivityForResult(cameraIntent, CAMERA_REQUEST);
                         } else {
-                            exibirMensagem("Permissão negada!");
+                            showMessage(MainActivity.this, "Permissão negada!");
                         }
                     }
 
@@ -397,7 +510,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
                         if (report.areAllPermissionsGranted()) {
                             selecionarImagemGaleria(PERMISSAO_SELECIONAR_IMAGEM);
                         } else {
-                            exibirMensagem("Permissão negada!");
+                            showMessage(MainActivity.this, "Permissão negada!");
                         }
                     }
 
@@ -418,15 +531,10 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
                                 @Override
                                 public void onBitmapReady(Bitmap saveBitmap) {
                                     preview.getSource().setImageBitmap(saveBitmap);
-                                    final String diretorio = BitmapUtils.inserirImagem(getContentResolver(), saveBitmap, System.currentTimeMillis() + "_cover.jpg", null);
+                                    final String diretorio = BitmapUtils.inserirImagem(MainActivity.this, getContentResolver(), saveBitmap, System.currentTimeMillis() + "_cover.jpg", null);
                                     if (!TextUtils.isEmpty(diretorio)) {
                                         Snackbar snackbar = Snackbar.make(coordinatorLayout, SALVO_COM_SUCESSO, Snackbar.LENGTH_LONG)
-                                                .setAction("Abrir", new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View v) {
-                                                        abrirImagem(diretorio);
-                                                    }
-                                                });
+                                                .setAction("Abrir", v -> abrirImagem(diretorio));
                                         snackbar.show();
                                     } else {
                                         Snackbar snackbar = Snackbar.make(coordinatorLayout, ERRO_SALVAMENTO, Snackbar.LENGTH_LONG);
@@ -440,7 +548,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
                                 }
                             });
                         } else {
-                            exibirMensagem(PERMISSÃO_NEGADA);
+                            showMessage(MainActivity.this, PERMISSAO_NEGADA);
                         }
                     }
 
@@ -467,10 +575,12 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
             Bitmap bitmap = BitmapUtils.getBitmapFromGallery(this, data.getData(), 1000, 1400);
 
             uri_selecionada = data.getData();
+            assert bitmap != null;
             processarImagemRecebida(bitmap);
             recarregarPainelFiltros();
         } else if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {
             Bitmap bitmap = BitmapUtils.getBitmapFromGallery(this, uri_selecionada, 1000, 1400);
+            assert bitmap != null;
             processarImagemRecebida(bitmap);
             recarregarPainelFiltros();
         } else if (resultCode == RESULT_OK && requestCode == PERMISSAO_INSERIR_IMAGEM && data != null) {
@@ -503,16 +613,12 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
         bitmap.recycle();
     }
 
-    public void exibirMensagem(String mensagem) {
-        Toast.makeText(this, mensagem, Toast.LENGTH_LONG).show();
-    }
-
     private void handleCropError(Intent data) {
         final Throwable error = UCrop.getError(data);
         if (error != null) {
-            exibirMensagem(error.getMessage());
+            showMessage(MainActivity.this, error.getMessage());
         } else {
-            exibirMensagem("Erro desconhecido! :X");
+            showMessage(MainActivity.this, "Erro desconhecido! :X");
         }
     }
 
@@ -523,7 +629,7 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
         if (resultUri != null) {
             preview.getSource().setImageURI(resultUri);
         } else {
-            exibirMensagem("Não foi possível carregar a imagem cortada! :X");
+            showMessage(MainActivity.this, "Não foi possível carregar a imagem cortada! :X");
         }
     }
 
@@ -579,17 +685,287 @@ public class MainActivity extends AppCompatActivity implements ListaFiltrosFragm
             fragmentManager.popBackStackImmediate();
         }
 
-        if(editarImagemFragment != null){
+        if (editarImagemFragment != null) {
             editarImagemFragment.resetarAlteracoes();
         }
 
-        if(brushFragment != null){
+        if (brushFragment != null) {
             brushFragment.resetarAlteracoes();
         }
 
-        if(adicionarTextoFragment != null){
+        if (adicionarTextoFragment != null) {
             adicionarTextoFragment.resetarAlteracoes();
         }
     }
 
+    private void resizeImage() {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        imagemEditando.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] bitmapData = byteArrayOutputStream.toByteArray();
+
+        int widthToUpscale = 300; //TODO Caio change it to dinamically
+        int heightToUpscale = 300; //TODO Caio change it to dinamically
+
+        RequestBody imageRequestBody = RequestBody.create(MediaType.parse("image/jpeg"), bitmapData);
+        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image_file", "image.jpg", imageRequestBody);
+        MultipartBody.Part targetWidth = MultipartBody.Part.createFormData("target_width", String.valueOf(widthToUpscale));
+        MultipartBody.Part targetHeight = MultipartBody.Part.createFormData("target_width", String.valueOf(heightToUpscale));
+
+        Call<ResponseBody> call = getInstance().getApi().upscaleImage(API_KEY, imagePart, targetWidth, targetHeight);
+
+        Log.i("AI Conn", "connecting...");
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    if (response.isSuccessful()) {
+                        assert response.body() != null;
+                        byte[] imageResized = response.body().bytes();
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageResized, 0, imageResized.length);
+
+                        processarImagemRecebida(bitmap);
+                        recarregarPainelFiltros();
+
+                        Log.i("success", "Success");
+                    } else {
+                        throw new IOException();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showMessage(MainActivity.this, "Erro ao redimensionar Imagem com IA.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                showMessage(MainActivity.this, t.getMessage());
+            }
+        });
+    }
+
+    private void reimaginarImagem() {
+        validateImageReimaginate(imagemEditando);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        imagemEditando.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] bitmapData = byteArrayOutputStream.toByteArray();
+
+        RequestBody imageRequestBody = RequestBody.create(MediaType.parse("image/jpeg"), bitmapData);
+        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image_file", "image.jpg", imageRequestBody);
+
+        Call<ResponseBody> call = getInstance().getApi().reimagineImage(API_KEY, imagePart);
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    if (response.isSuccessful()) {
+                        assert response.body() != null;
+                        byte[] imageResized = response.body().bytes();
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageResized, 0, imageResized.length);
+                        processarImagemRecebida(bitmap);
+                        recarregarPainelFiltros();
+                    } else {
+                        throw new IOException();
+                    }
+                    progressDialog.dismiss();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showMessage(MainActivity.this, "Erro ao reimaginar imagem com IA.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                progressDialog.dismiss();
+                showMessage(MainActivity.this, t.getMessage());
+            }
+        });
+    }
+
+    private void removeBackground() {
+        validateImageRemoveBackground(imagemEditando);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        imagemEditando.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] bitmapData = byteArrayOutputStream.toByteArray();
+
+        RequestBody imageRequestBody = RequestBody.create(MediaType.parse("image/jpeg"), bitmapData);
+        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image_file", "image.jpg", imageRequestBody);
+
+        Call<ResponseBody> call = getInstance().getApi().removeBackgroundImage(API_KEY, imagePart);
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+                for(String header: response.headers().names()){
+                    Log.i(header, response.headers().get(header));
+                }
+
+                try {
+                    if (response.isSuccessful()) {
+                        assert response.body() != null;
+                        byte[] imageResized = response.body().bytes();
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageResized, 0, imageResized.length);
+                        processarImagemRecebida(bitmap);
+                        recarregarPainelFiltros();
+                    } else {
+                        throw new IOException();
+                    }
+                    progressDialog.dismiss();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showMessage(MainActivity.this, "Erro ao remover fundo de imagem com IA.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                progressDialog.dismiss();
+                showMessage(MainActivity.this, t.getMessage());
+            }
+        });
+    }
+
+    private void removeText() {
+        validateImageRemoveText(imagemEditando);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        imagemEditando.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] bitmapData = byteArrayOutputStream.toByteArray();
+
+        RequestBody imageRequestBody = RequestBody.create(MediaType.parse("image/jpeg"), bitmapData);
+        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image_file", "image.jpg", imageRequestBody);
+
+        Call<ResponseBody> call = getInstance().getApi().removeTextImage(API_KEY, imagePart);
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+                for(String header: response.headers().names()){
+                    Log.i(header, response.headers().get(header));
+                }
+
+                try {
+                    if (response.isSuccessful()) {
+                        assert response.body() != null;
+                        byte[] imageResized = response.body().bytes();
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageResized, 0, imageResized.length);
+                        processarImagemRecebida(bitmap);
+                        recarregarPainelFiltros();
+                    } else {
+                        throw new IOException();
+                    }
+                    progressDialog.dismiss();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showMessage(MainActivity.this, "Erro ao remover texto de imagem com IA.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                progressDialog.dismiss();
+                showMessage(MainActivity.this, t.getMessage());
+            }
+        });
+    }
+
+    private void replaceBackground(String prompt) {
+        validateImageReplaceBackground(imagemEditando);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        imagemEditando.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] bitmapData = byteArrayOutputStream.toByteArray();
+
+        RequestBody imageRequestBody = RequestBody.create(MediaType.parse("image/jpeg"), bitmapData);
+        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image_file", "image.jpg", imageRequestBody);
+
+        prompt = prompt == null ? "" : prompt;
+        Log.i("targetPrompt", prompt);
+        MultipartBody.Part targetPrompt = MultipartBody.Part.createFormData("prompt", prompt);
+
+        Call<ResponseBody> call = getInstance().getApi().replaceBackground(API_KEY, imagePart, targetPrompt);
+
+        Log.i("ReplaceBackground", "Substituindo fundo...");
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.i("statusResponse", response.code() + "");
+                for(String header: response.headers().names()){
+                    Log.i(header, response.headers().get(header));
+                }
+
+                try {
+                    if (response.isSuccessful()) {
+                        assert response.body() != null;
+                        byte[] imageResized = response.body().bytes();
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageResized, 0, imageResized.length);
+                        processarImagemRecebida(bitmap);
+                        recarregarPainelFiltros();
+                    } else {
+                        Log.i("Erro", response.errorBody().string());
+                        throw new IOException();
+                    }
+                    progressDialog.dismiss();
+                } catch (IOException e) {
+                    progressDialog.dismiss();
+                    e.printStackTrace();
+                    showMessage(MainActivity.this, "Erro ao substituir fundo de imagem com IA.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                progressDialog.dismiss();
+                Log.e("Erro", t.getMessage());
+                showMessage(MainActivity.this, t.getMessage());
+            }
+        });
+    }
+
+    private void textToImage(String prompt) {
+        Log.i("targetPrompt", prompt);
+        MultipartBody.Part targetPrompt = MultipartBody.Part.createFormData("prompt", prompt);
+
+        Call<ResponseBody> call = getInstance().getApi().textToImage(API_KEY, targetPrompt);
+
+        Log.i("ReplaceBackground", "Text to Image...");
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.i("statusResponse", response.code() + "");
+                for(String header: response.headers().names()){
+                    Log.i(header, response.headers().get(header));
+                }
+
+                try {
+                    if (response.isSuccessful()) {
+                        assert response.body() != null;
+                        byte[] imageResized = response.body().bytes();
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageResized, 0, imageResized.length);
+                        processarImagemRecebida(bitmap);
+                        recarregarPainelFiltros();
+                    } else {
+                        Log.i("Erro", response.errorBody().string());
+                        throw new IOException();
+                    }
+                    progressDialog.dismiss();
+                } catch (IOException e) {
+                    progressDialog.dismiss();
+                    e.printStackTrace();
+                    showMessage(MainActivity.this, "Erro ao gerar imagem com base em texto com IA.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                progressDialog.dismiss();
+                Log.e("Erro", t.getMessage());
+                showMessage(MainActivity.this, t.getMessage());
+            }
+        });
+    }
 }

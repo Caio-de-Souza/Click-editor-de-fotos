@@ -1,0 +1,15 @@
+<!-- res/layout/dialog_layout.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_margin="20dp">
+
+    <EditText
+        android:id="@+id/editTextPromptAI"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Insira sua descrição..."
+        android:layout_margin="10dp"/>
+
+</LinearLayout>

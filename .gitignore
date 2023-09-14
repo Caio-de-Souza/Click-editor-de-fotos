@@ -1,8 +1,8 @@
 *.iml
 .gradle
 .idea
-.idea/
-.idea/*
+/.idea/
+/.idea/*
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -15,3 +15,4 @@
 /captures
 .externalNativeBuild
 .cxx
+/app/src/main/assets/api_key.txt

@@ -1,9 +1,12 @@
 package com.souza.caio.click.adaptadores;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -20,6 +23,9 @@ import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -28,6 +34,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class BitmapUtils {
+
+    private static final int REQUEST_PERMISSION_CODE = 123;
 
     public static Bitmap getBitmapFromAssets(Context context, String nome, int largura, int altura) {
         AssetManager assetManager = context.getAssets();
@@ -73,7 +81,9 @@ public class BitmapUtils {
                     }
                 } else {*/
                 // Repeat the code you already are using
-                String diretorioImagem = cursor.getString(cursor.getColumnIndex(colunaDiretorio[0]));
+                int value = cursor.getColumnIndex(colunaDiretorio[0]);
+                assert value >= 0;
+                String diretorioImagem = cursor.getString(value);
                 cursor.close();
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inPreferredConfig = Bitmap.Config.ARGB_8888;
@@ -167,7 +177,7 @@ public class BitmapUtils {
         return bitmap;
     }
 
-    public static String inserirImagem(ContentResolver resolver, Bitmap fonte, String titulo, String descricao) {
+    public static String inserirImagem(Activity activity, ContentResolver resolver, Bitmap fonte, String titulo, String descricao) {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, titulo);
         values.put(MediaStore.Images.Media.DISPLAY_NAME, titulo);
@@ -194,7 +204,7 @@ public class BitmapUtils {
                 long id = ContentUris.parseId(uri);
                 Bitmap mini_thumb = MediaStore.Images.Thumbnails.getThumbnail(resolver, id, MediaStore.Images.Thumbnails.MINI_KIND, null);
 
-                armazenarThumb(resolver, mini_thumb, id, 50f, 50f, MediaStore.Images.Thumbnails.MICRO_KIND);
+                armazenarThumb(activity, resolver, mini_thumb, id, 50f, 50f, MediaStore.Images.Thumbnails.MICRO_KIND);
             } else {
                 resolver.delete(uri, null, null);
                 uri = null;
@@ -242,7 +252,11 @@ public class BitmapUtils {
     }
 
 
-    private static final Bitmap armazenarThumb(ContentResolver resolver, Bitmap mini_thumb, long id, float largura, float altura, int kind) {
+    private static final Bitmap armazenarThumb(Activity activity, ContentResolver resolver, Bitmap mini_thumb, long id, float largura, float altura, int kind) {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE);
+        }
+
         Matrix matrix = new Matrix();
 
         float escalaX = largura / mini_thumb.getWidth();
